@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
-from typing import List
-
-import torch
+from typing import Dict, List
 
 from src.confs import envs_conf
 
@@ -17,17 +14,39 @@ class DataProcessingSvc:
         """Return a list of example that are: [word, V or N, sentence_example1, sentence_example2]"""
         texts = open(self.envs_conf.dev_data_dir / file_name, "r").read().splitlines()
         texts = [text.split("\t") for text in texts]
-        print(len(texts[0]))
-        print(type(texts[0]))
         cleaned_texts = []
-        # Removing the position + Cleaning the extra space for each example.
         for word, verb_noun, _, example1, example2 in texts:
-            cleaned_sample = [word, verb_noun, example1[:-2] + ".", example2[:-2] + "."]
+            cleaned_sample = [
+                word,
+                verb_noun,
+                example1,
+                example2,
+            ]
             cleaned_texts.append(cleaned_sample)
         return cleaned_texts
 
-    def word_level_bigram(self, dataset: List[List[str]]) -> torch.Tensor:
-        raise NotImplementedError
+    def get_vocab_word(self, dataset: List[List[str]]) -> Dict[str, int]:
+        example1 = set(" ".join([data[2] for data in dataset]).split())
+        example2 = set(" ".join([data[3] for data in dataset]).split())
+
+        # concatenated_example2 = [data[3] for data in dataset]
+        # words = set("".join(concatenated_example1).split())
+        example1.update(example2)
+        words = sorted(list(example1))
+        stoi = {s: i + 2 for i, s in enumerate(words)}
+        stoi["<S>"] = 0
+        stoi["<E>"] = 1
+
+        return stoi
+
+    def get_vocab_character(self, dataset: List[List[str]]) -> Dict[str, int]:
+        example1 = set(" ".join([data[2] for data in dataset]).split())
+        example2 = set(" ".join([data[3] for data in dataset]).split())
+        example1.update(example2)
+        full_text = " ".join(example1)
+        characters = sorted(list(set(full_text)))
+        stoi = {s: i + 1 for i, s in enumerate(characters)}
+        return stoi
 
 
 impl = DataProcessingSvc()

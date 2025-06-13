@@ -1,8 +1,11 @@
-from src.modules import data_processing_svc
+from src.modules import basic_neural_net_svc
 
 
 def main():
-    dev_set = data_processing_svc.impl.text_file_reader("dev.data.txt")
+    myclass = basic_neural_net_svc.BasicNeuralNetSvc("dev.data.txt")
+
+    # bigram = word_level_bigram_svc.BigramSvc("dev.data.txt")
+    # print(bigram.predict_next_word("mandated"))
 
 
 if __name__ == "__main__":
